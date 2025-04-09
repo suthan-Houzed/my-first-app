@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFirebase } from '../context/FirebaseContext';
+import { FirebaseError } from 'firebase/app';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,8 +22,12 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        setError(err.message);
+      } else {
+        setError('Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +90,7 @@ export default function LoginPage() {
         </form>
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
               Register here
             </Link>

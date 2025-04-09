@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from './components/Navbar';
 import { UserProvider } from "./context/UserContext";
 import Header from "./components/Header";
 import { FirebaseProvider } from "./context/FirebaseContext";

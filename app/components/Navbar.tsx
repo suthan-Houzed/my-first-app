@@ -1,29 +1,44 @@
 'use client';
 
 import Link from 'next/link';
+import { useFirebase } from '../context/FirebaseContext';
 
-export default function Navbar() {
+const Navbar = () => {
+  const { user, logout } = useFirebase();
+
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-gray-800">
-                User Management
+    <nav className="bg-gray-800 p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link href="/" className="text-white font-bold text-xl">
+          My App
+        </Link>
+        <div className="space-x-4">
+          {user ? (
+            <>
+              <Link href="/dashboard" className="text-white hover:text-gray-300">
+                Dashboard
               </Link>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <Link
-              href="/register"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Register
-            </Link>
-          </div>
+              <button
+                onClick={logout}
+                className="text-white hover:text-gray-300"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-white hover:text-gray-300">
+                Login
+              </Link>
+              <Link href="/register" className="text-white hover:text-gray-300">
+                Register
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
   );
-} 
+};
+
+export default Navbar; 

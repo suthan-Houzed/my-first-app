@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirebase } from '../context/FirebaseContext';
+import { FirebaseError } from 'firebase/app';
 
 type UserRole = 'admin' | 'user';
 
@@ -25,8 +26,12 @@ export default function RegisterPage() {
     try {
       await register(formData.email, formData.password, formData.name, formData.role);
       router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        setError(err.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

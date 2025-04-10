@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { UserProvider } from "./context/UserContext";
 import Header from "./components/Header";
-import { FirebaseProvider } from "./context/FirebaseContext";
+import ClientProviders from "./ClientProviders";
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -18,16 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <FirebaseProvider>
-      <UserProvider>
       <body className={inter.className}>
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </main>
+        <ClientProviders>
+          <Header />
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {children}
+          </main>
+        </ClientProviders>
       </body>
-      </UserProvider>
-      </FirebaseProvider>
     </html>
   );
 }

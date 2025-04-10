@@ -29,7 +29,7 @@
     updateDoc,
   } from 'firebase/firestore';
 
-  import { removeAuthToken, setAuthToken } from '@/app/utils/auth';
+  import { setAuthToken } from '@/app/utils/auth';
 
   interface UserData {
     id: string;

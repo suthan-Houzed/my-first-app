@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFirebase } from '../context/FirebaseContext';
 import { FirebaseError } from 'firebase/app';
 import Link from 'next/link';
@@ -9,7 +8,6 @@ import Link from 'next/link';
 type UserRole = 'admin' | 'user';
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { register } = useFirebase();
   const [formData, setFormData] = useState({
     name: '',

@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useFirebase } from '../context/FirebaseContext';
 
 const Navbar = () => {
-  const { user, logout } = useFirebase();
-
+  const { user, logout } = useFirebase(); 
   return (
     <nav className="bg-gray-800 p-4">
       <div className="container mx-auto flex justify-between items-center">

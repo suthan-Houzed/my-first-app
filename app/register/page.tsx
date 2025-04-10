@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirebase } from '../context/FirebaseContext';
 import { FirebaseError } from 'firebase/app';
+import Link from 'next/link';
 
 type UserRole = 'admin' | 'user';
 
@@ -24,8 +25,13 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(formData.email, formData.password, formData.name, formData.role);
-      router.push('/');
+      const userData = await register(formData.email, formData.password, formData.name, formData.role);
+      if (userData) {
+        // Use the API route for redirection
+        window.location.href = '/api/auth/redirect';
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     } catch (err) {
       if (err instanceof FirebaseError) {
         setError(err.message);
@@ -118,6 +124,14 @@ export default function RegisterPage() {
             </button>
           </div>
         </form>
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              login
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

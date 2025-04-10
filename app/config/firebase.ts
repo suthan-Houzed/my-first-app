@@ -29,8 +29,8 @@ let db: Firestore | null = null;
 
 if (shouldInitialize) {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-console.log('firebaseConfig', firebaseConfig);
-  console.log('app', app);
+// console.log('firebaseConfig', firebaseConfig);
+//   console.log('app', app);
   if (typeof window !== 'undefined') {
     auth = getAuth(app);
     db = getFirestore(app);

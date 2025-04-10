@@ -5,10 +5,10 @@ import { UserProvider } from './context/UserContext';
 
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
-    <FirebaseProvider>
-      <UserProvider>
-        {children}
-      </UserProvider>
-    </FirebaseProvider>
+      <FirebaseProvider>
+        <UserProvider>
+          {children}
+        </UserProvider>
+      </FirebaseProvider>
   );
 }

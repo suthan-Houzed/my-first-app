@@ -20,8 +20,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      router.push('/');
+      const userData = await login(email, password);
+      if (userData) {
+        // Use the API route for redirection
+        window.location.href = '/api/auth/redirect';
+      } else {
+        setError('Failed to login. Please try again.');
+      }
     } catch (err) {
       if (err instanceof FirebaseError) {
         setError(err.message);

@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 // Validate env vars
 const requiredVars = Object.entries(firebaseConfig);
-const missing = requiredVars.filter(([_, value]) => !value).map(([key]) => key);
+const missing = requiredVars.filter(([, value]) => !value).map(([key]) => key);
 
 if (missing.length > 0) {
   console.error('[Firebase] Missing environment variables:', missing);

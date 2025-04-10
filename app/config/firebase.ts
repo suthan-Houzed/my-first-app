@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Firebase configuration
+// Firebase config from env
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -11,49 +11,30 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
-console.log('Firebase config:', firebaseConfig);
-// Initialize Firebase
-let app: FirebaseApp;
+
+// Validate env vars
+const requiredVars = Object.entries(firebaseConfig);
+const missing = requiredVars.filter(([_, value]) => !value).map(([key]) => key);
+
+if (missing.length > 0) {
+  console.error('[Firebase] Missing environment variables:', missing);
+}
+
+const shouldInitialize = missing.length === 0;
+
+let app: FirebaseApp | undefined;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-try {
-  // Check if Firebase is already initialized
-  if (!getApps().length) {
-    // Validate required environment variables
-    const requiredEnvVars = [
-      'NEXT_PUBLIC_FIREBASE_API_KEY',
-      'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-      'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-      'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-      'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-      'NEXT_PUBLIC_FIREBASE_APP_ID'
-    ];
-
-    const missingVars = requiredEnvVars.filter(
-      (envVar) => !process.env[envVar]
-    );
-
-    if (missingVars.length > 0) {
-      console.error('Missing Firebase environment variables:', missingVars);
-      throw new Error('Missing required Firebase environment variables');
-    }
-
-    // Initialize Firebase
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
-  }
-
-  // Only initialize auth and firestore in the browser
+if (shouldInitialize) {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+console.log('firebaseConfig', firebaseConfig);
   if (typeof window !== 'undefined') {
     auth = getAuth(app);
     db = getFirestore(app);
+  } else {
+    console.warn('[Firebase] Skipped auth/db init on server');
   }
-} catch (error) {
-  console.error('Firebase initialization error:', error);
-  // Don't throw the error to prevent the app from crashing
-  // Instead, we'll handle it gracefully in the components
 }
 
 export { auth, db };

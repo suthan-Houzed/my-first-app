@@ -1,16 +1,33 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+
 import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  deleteUser as deleteAuthUser
+  deleteUser as deleteAuthUser,
 } from 'firebase/auth';
+
 import { auth, db } from '@/app/config/firebase';
-import { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc } from 'firebase/firestore';
+
+import {
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  collection,
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
 
 interface UserData {
   id: string;
@@ -48,110 +65,71 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = async (email: string, password: string, name: string, role: string) => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Store additional user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        name,
-        email,
-        role,
-        createdAt: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
+    if (!auth || !db) throw new Error("Firebase not initialized");
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    await setDoc(doc(db, 'users', user.uid), {
+      name,
+      email,
+      role,
+      createdAt: new Date().toISOString(),
+    });
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    if (!auth) throw new Error("Firebase not initialized");
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
+    if (!auth) throw new Error("Firebase not initialized");
+    await signOut(auth);
   };
 
   const getUsers = async () => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      const users = await getDocs(collection(db, 'users'));
-      return users.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      })) as UserData[];
-    } catch (error) {
-      console.error('Get users error:', error);
-      throw error;
-    }
+    if (!db) throw new Error("Firebase not initialized");
+    const users = await getDocs(collection(db, 'users'));
+    return users.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as UserData[];
   };
 
   const getUserById = async (userId: string) => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        return { id: userDoc.id, ...userDoc.data() } as UserData;
-      }
-      return null;
-    } catch (error) {
-      console.error('Get user by ID error:', error);
-      throw error;
-    }
+    if (!db) throw new Error("Firebase not initialized");
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    return userDoc.exists()
+      ? ({ id: userDoc.id, ...userDoc.data() } as UserData)
+      : null;
   };
 
   const updateUser = async (userId: string, data: Partial<UserData>) => {
-    try {
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      await updateDoc(doc(db, 'users', userId), data);
-    } catch (error) {
-      console.error('Update user error:', error);
-      throw error;
-    }
+    if (!db) throw new Error("Firebase not initialized");
+    await updateDoc(doc(db, 'users', userId), data);
   };
 
   const deleteUser = async (userId: string) => {
-    try {
-      // Delete user from Firestore
-      if (!auth || !db) throw new Error("Firebase not initialized");
-      await deleteDoc(doc(db, 'users', userId));
-
-      // If the user is the current user, delete from auth
-      if (user?.uid === userId) {
-        await deleteAuthUser(user);
-      }
-    } catch (error) {
-      console.error('Delete user error:', error);
-      throw error;
+    if (!db) throw new Error("Firebase not initialized");
+    await deleteDoc(doc(db, 'users', userId));
+    if (user?.uid === userId && auth) {
+      await deleteAuthUser(user);
     }
   };
 
   return (
-    <FirebaseContext.Provider value={{
-      user,
-      loading,
-      register,
-      login,
-      logout,
-      getUsers,
-      getUserById,
-      updateUser,
-      deleteUser
-    }}>
+    <FirebaseContext.Provider
+      value={{
+        user,
+        loading,
+        register,
+        login,
+        logout,
+        getUsers,
+        getUserById,
+        updateUser,
+        deleteUser,
+      }}
+    >
       {children}
     </FirebaseContext.Provider>
   );
@@ -163,4 +141,4 @@ export function useFirebase() {
     throw new Error('useFirebase must be used within a FirebaseProvider');
   }
   return context;
-} 
+}

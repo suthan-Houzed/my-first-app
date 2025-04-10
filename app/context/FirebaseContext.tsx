@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
+import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,9 +9,8 @@ import {
   onAuthStateChanged,
   deleteUser as deleteAuthUser
 } from 'firebase/auth';
-import { auth } from '@/app/config/firebase';
+import { auth, db } from '@/app/config/firebase';
 import { doc, setDoc, getDoc, getDocs, collection, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/app/config/firebase';
 
 interface UserData {
   id: string;
@@ -40,16 +39,17 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
   const register = async (email: string, password: string, name: string, role: string) => {
     try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -68,6 +68,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error('Login error:', error);
@@ -77,6 +78,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       await signOut(auth);
     } catch (error) {
       console.error('Logout error:', error);
@@ -85,7 +87,8 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   };
 
   const getUsers = async () => {
-    try { 
+    try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       const users = await getDocs(collection(db, 'users'));
       return users.docs.map((doc) => ({
         id: doc.id,
@@ -99,6 +102,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const getUserById = async (userId: string) => {
     try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
         return { id: userDoc.id, ...userDoc.data() } as UserData;
@@ -112,6 +116,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
 
   const updateUser = async (userId: string, data: Partial<UserData>) => {
     try {
+      if (!auth || !db) throw new Error("Firebase not initialized");
       await updateDoc(doc(db, 'users', userId), data);
     } catch (error) {
       console.error('Update user error:', error);
@@ -122,8 +127,9 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   const deleteUser = async (userId: string) => {
     try {
       // Delete user from Firestore
+      if (!auth || !db) throw new Error("Firebase not initialized");
       await deleteDoc(doc(db, 'users', userId));
-      
+
       // If the user is the current user, delete from auth
       if (user?.uid === userId) {
         await deleteAuthUser(user);
@@ -135,12 +141,12 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <FirebaseContext.Provider value={{ 
-      user, 
-      loading, 
-      register, 
-      login, 
-      logout, 
+    <FirebaseContext.Provider value={{
+      user,
+      loading,
+      register,
+      login,
+      logout,
       getUsers,
       getUserById,
       updateUser,

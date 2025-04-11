@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useFirebase } from '../context/FirebaseContext';
 import { FirebaseError } from 'firebase/app';
 import Link from 'next/link';
-
+import { useRouter } from 'next/navigation'; 
 type UserRole = 'admin' | 'user';
 
 export default function RegisterPage() {
@@ -17,18 +17,54 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate empty fields
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!formData.password.trim()) {
+      setError('Password is required');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const userData = await register(formData.email, formData.password, formData.name, formData.role);
-      if (userData) {
-        // Use the API route for redirection
-        window.location.href = '/api/auth/redirect';
+      if (userData) {        
+        try {
+          const response = await fetch('/api/auth/redirect', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: userData }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to redirect');
+          }
+          const data = await response.json();
+          if (data.success) {
+            router.push('/');
+          } else {
+            router.push('/login');
+          }
+        } catch (redirectError) {
+          console.error('Redirect error:', redirectError as Error);
+          setError('Registration successful but redirect failed. Please try again.');
+        }
       } else {
-        setError('Registration failed. Please try again.');
+        setError('Failed to register. Please try again.');
       }
     } catch (err) {
       if (err instanceof FirebaseError) {
@@ -58,7 +94,9 @@ export default function RegisterPage() {
                 name="name"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                  error && !formData.name.trim() ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -71,7 +109,9 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                  error && !formData.email.trim() ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Email address"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -98,7 +138,9 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                  error && !formData.password.trim() ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}

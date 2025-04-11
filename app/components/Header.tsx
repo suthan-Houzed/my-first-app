@@ -3,24 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useFirebase } from '../context/FirebaseContext';
 
 export default function Header() {
   const pathname = usePathname();
   const { user, logout } = useFirebase();
+  const router = useRouter();
 
   const logoutHandler = async () => { 
     await logout();
     // Optionally, you can redirect the user after logout
-    await fetch('/api/auth/redirect', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },  
+    await fetch('/api/auth/logout', {
+      method: 'POST',
     });
+    router.push('/login');
+  
   }
 
-  
   // Check if we're on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register';
   // console.log('isAuthPage',isAuthPage)
@@ -56,7 +56,7 @@ export default function Header() {
                   Role Management
                 </Link>
               </nav>
-            ) : !isAuthPage && !user ? (
+            ) : isAuthPage && !user ? (
               <nav className="ml-6 flex space-x-8">
                 <Link 
                   href="/login"

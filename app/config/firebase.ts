@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
@@ -29,8 +28,7 @@ let db: Firestore | null = null;
 
 if (shouldInitialize) {
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-// console.log('firebaseConfig', firebaseConfig);
-//   console.log('app', app);
+
   if (typeof window !== 'undefined') {
     auth = getAuth(app);
     db = getFirestore(app);

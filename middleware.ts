@@ -6,12 +6,11 @@ const publicPaths = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get('auth-token');
+  const token = request.cookies.get('auth-token')?.value;
 
-  // Check if the path is public
+  // Check if the pa  th is public
   const isPublicPath = publicPaths.includes(pathname);
   // If user is not authenticated and trying to access protected route
-  console.log('isPublicPath',isPublicPath)
   if (!token && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }

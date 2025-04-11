@@ -29,8 +29,6 @@
     updateDoc,
   } from 'firebase/firestore';
 
-  import { setAuthToken } from '@/app/utils/auth';
-
   interface UserData {
     id: string;
     name: string;
@@ -42,8 +40,8 @@
   interface FirebaseContextType {
     user: UserData | null;
     loading: boolean;
-    register: (email: string, password: string, name: string, role: string) => Promise<UserData | null>;
-    login: (email: string, password: string) => Promise<UserData | null>;
+    register: (email: string, password: string, name: string, role: string) => Promise<string | null>;
+    login: (email: string, password: string) => Promise<string | null>;
     logout: () => Promise<void>;
     getUsers: () => Promise<UserData[]>;
     getUserById: (userId: string) => Promise<UserData | null>;
@@ -65,7 +63,7 @@
         if (firebaseUser) {
           getUserById(firebaseUser.uid).then((userData) => {
             setUser(userData);
-            console.log('userData',userData)
+            console.log('userData22222',userData)
           });
         } else {
           setUser(null);
@@ -81,7 +79,6 @@
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const token = await user.getIdToken();
-      setAuthToken(token);
       await setDoc(doc(db, 'users', user.uid), {
         name,
         email,
@@ -89,7 +86,8 @@
         createdAt: new Date().toISOString(),
       });
       const userData = await getUserById(user.uid);
-      return userData;
+      setUser(userData);
+      return token;
     };
 
     const login = async (email: string, password: string) => {
@@ -97,10 +95,9 @@
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const token = await user.getIdToken();
-      setAuthToken(token);
       const userData = await getUserById(user.uid);
       setUser(userData);
-      return userData;
+      return token;
     };
 
     const logout = async () => {

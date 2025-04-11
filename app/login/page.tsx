@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useFirebase } from '../context/FirebaseContext';
-import { FirebaseError } from 'firebase/app';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,22 +11,49 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useFirebase();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate empty fields
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Password is required');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const userData = await login(email, password);
-      if (userData) {
-        // Use the API route for redirection
-        window.location.href = '/api/auth/redirect';
+      if (userData) {     
+        const response = await fetch('/api/auth/redirect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: userData }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to redirect');
+        }
+        const data = await response.json();
+        if (data.success) {
+          router.push('/');
+        } else {
+          router.push('/login');
+        }   
       } else {
         setError('Failed to login. Please try again.');
       }
-    } catch (err) {
-      if (err instanceof FirebaseError) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('Failed to login. Please check your credentials.');
@@ -58,7 +85,9 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                  error && !email.trim() ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -67,13 +96,15 @@ export default function LoginPage() {
             <div>
               <label htmlFor="password" className="sr-only">
                 Password
-              </label>
+              </label>  
               <input
                 id="password"
                 name="password"
-                type="password"
+                type="password" 
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
+                  error && !password.trim() ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

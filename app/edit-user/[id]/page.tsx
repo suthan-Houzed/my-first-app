@@ -38,9 +38,12 @@ export default function EditUserPage() {
         } else {
           router.push('/roles');
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setError('Failed to load user data');
+      } catch (fetchError: unknown) {
+        if (fetchError instanceof Error) {
+          setError(fetchError.message);
+        } else {
+          setError('Failed to load user data');
+        }
       } finally {
         setLoading(false);
       }
@@ -57,6 +60,16 @@ export default function EditUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -66,9 +79,12 @@ export default function EditUserPage() {
         role: formData.role,
       });
       router.push('/roles');
-    } catch (error) {
-      console.error('Error updating user:', error);
-      setError('Failed to update user');
+    } catch (updateError: unknown) {
+      if (updateError instanceof Error) {
+        setError(updateError.message);
+      } else {
+        setError('Failed to update user');
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +125,9 @@ export default function EditUserPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded text-gray-900 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className={`w-full p-2.5 border ${
+                error && !formData.name.trim() ? 'border-red-500' : 'border-gray-300'
+              } rounded text-gray-900 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
             />
           </div>
           <div>
@@ -120,7 +138,9 @@ export default function EditUserPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded text-gray-900 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className={`w-full p-2.5 border ${
+                error && !formData.email.trim() ? 'border-red-500' : 'border-gray-300'
+              } rounded text-gray-900 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
             />
           </div>
           <div>

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+  import { clerkMiddleware } from "@clerk/nextjs/server";
 
 // Define public paths that don't require authentication
 const publicPaths = ['/login', '/register'];
 
+// Original middleware implementation
+/*
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('auth-token')?.value;
 
-  // Check if the pa  th is public
+  // Check if the path is public
   const isPublicPath = publicPaths.includes(pathname);
   // If user is not authenticated and trying to access protected route
   if (!token && !isPublicPath) {
@@ -22,6 +25,13 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+*/
+
+// Clerk middleware implementation
+  export default clerkMiddleware({
+  // Public routes that don't require authentication
+  // publicRoutes: ["/", "/api/webhook"],
+});
 
 // Configure which paths the middleware should run on
 export const config = {

@@ -3,28 +3,29 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useRouter } from 'next/navigation';
-import { useFirebase } from '../context/FirebaseContext';
-
+// import { useRouter } from 'next/navigation';
+// import { useFirebase } from '../context/FirebaseContext';
+import { useUser,UserButton } from '@clerk/nextjs';
 export default function Header() {
   const pathname = usePathname();
-  const { user, logout } = useFirebase();
-  const router = useRouter();
-
-  const logoutHandler = async () => { 
-    await logout();
-    // Optionally, you can redirect the user after logout
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-    });
-    router.push('/login');
   
-  }
+  const {user,isSignedIn}=  useUser  ();
+  // const { logout } = useFirebase();
+console.log('userId',user);
+  // const router = useRouter();
+
+  // const logoutHandler = async () => { 
+  //   await logout();
+  //   // Optionally, you can redirect the user after logout
+  //   await fetch('/api/auth/logout', {
+  //     method: 'POST',
+  //   });
+  //   router.push('/login');
+  
+  // }
 
   // Check if we're on auth pages
-  const isAuthPage = pathname === '/login' || pathname === '/register';
-  // console.log('isAuthPage',isAuthPage)
-  // console.log('user',user)
+  // const isAuthPage = pathname === '/login' || pathname === '/register';
   return (
     <header className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +34,8 @@ export default function Header() {
             <div className="flex-shrink-0 flex items-center">
               <span className="text-xl font-bold text-gray-800">User Management</span>
             </div>
-            {!isAuthPage && user ? (
+            {/* {!isAuthPage && user ? ( */}
+              {user && isSignedIn? (
               <nav className="ml-6 flex space-x-8">
                 <Link 
                   href="/"
@@ -55,13 +57,15 @@ export default function Header() {
                 >
                   Role Management
                 </Link>
+                
               </nav>
-            ) : isAuthPage && !user ? (
+            ) : (
               <nav className="ml-6 flex space-x-8">
                 <Link 
-                  href="/login"
+                  href="/sign-in"
+                  // href="/login"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    pathname === '/login' 
+                    pathname === '/sign-in' 
                       ? 'border-blue-500 text-gray-900' 
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
@@ -69,9 +73,10 @@ export default function Header() {
                   Login
                 </Link>
                 <Link 
-                  href="/register"
+                  href="/sign-up"
+                  // href="/register"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    pathname === '/register' 
+                    pathname === '/sign-up' 
                       ? 'border-blue-500 text-gray-900' 
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
@@ -79,19 +84,24 @@ export default function Header() {
                   Register
                 </Link>
               </nav>
-            ) : null}
+            )}
           </div>
-          {!isAuthPage && user && (
+          {user && isSignedIn && (
             <div className="flex items-center">
-              <span className="text-gray-700 mr-4">Welcome, {user.email}</span>
-              <button 
+              <span className="text-gray-700  mr-4">Welcome, {user?.username}</span>
+              {/* <button 
                 className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
                 onClick={logoutHandler}
               >
                 Logout
-              </button>
+              </button> */}
             </div>
-          )}
+           )}
+          <div className="flex items-center">
+                  <UserButton />
+                </div>
+          
+         
         </div>
       </div>
     </header>

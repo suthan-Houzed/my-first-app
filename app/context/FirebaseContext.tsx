@@ -53,23 +53,18 @@
 
   export function FirebaseProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading] = useState(true);
 
     useEffect(() => {
       if (!auth) return;
-      console.log('auth',auth.currentUser)
       const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        console.log('firebaseUser',firebaseUser)
         if (firebaseUser) {
           getUserById(firebaseUser.uid).then((userData) => {
             setUser(userData);
-            console.log('userData22222',userData)
           });
         } else {
-          setUser(null);
-          console.log('userData1',user)
+          setUser(null);  
         }
-        setLoading(false);
       });
       return () => unsubscribe();
     }, []);
